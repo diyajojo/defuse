@@ -9,15 +9,16 @@ export const toolsSchema = [
 ];
 
 export async function handleToolCall(name: string, args: any) {
-  if (name === "create_room" || name === "join_room") {
+  if (roomToolSchemas.some(t => t.name === name)) {
     return await handleRoomToolCall(name, args);
   }
-  if (name === "get_bomb_state") {
+  if (bombToolSchemas.some(t => t.name === name)) {
     return await handleBombToolCall(name, args);
   }
-  if (name === "choose_role") {
+  if (playerToolSchemas.some(t => t.name === name)) {
     return await handlePlayerToolCall(name, args);
   }
+  
   return {
     isError: true,
     content: [{ type: "text", text: `Tool not found: ${name}` }]

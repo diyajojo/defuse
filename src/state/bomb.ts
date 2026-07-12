@@ -19,6 +19,13 @@ export function createInitialBomb(): Bomb {
     timerSeconds: 300,
     strikes: 0,
     maxStrikes: 3,
-    modules: [],
+    modules: [
+      {
+        type: "wires",
+        wires: ["red", "blue", "yellow", "white"],
+        targetWireIndex: 1, // Expert rule 1: If there is a red wire, cut the second wire.
+        isDefused: false
+      }
+    ],
   };
 }
