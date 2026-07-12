@@ -1,3 +1,4 @@
+//Room is the actual obejct which contains what a room should have 
 export interface Room {
   code: string;
   players: string[];
@@ -6,6 +7,7 @@ export interface Room {
   };
 }
 
+//rooms is a dictionary which contains key as room code and value as the Room object
 export const rooms = new Map<string, Room>();
 
 export function generateRoomCode(): string {
@@ -19,6 +21,7 @@ export function generateRoomCode(): string {
 
 export function generateUniqueRoomCode(): string {
   let code = "";
+  // generating unique room codes if it exists in the rooms dictionary
   do {
     code = generateRoomCode();
   } while (rooms.has(code));
