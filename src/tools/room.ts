@@ -1,5 +1,5 @@
 import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
-import { createInitialBomb } from "../state/bomb.js";
+import { createInitialBomb, generateWireModule } from "../state/bomb.js";
 
 export const roomToolSchemas = [
   {
@@ -108,6 +108,7 @@ export async function handleRoomToolCall(name: string, args: any) {
     let gameStatusMsg = "";
     if (room.players.length === 3) {
       room.bomb.status = "active";
+      room.bomb.modules.push(generateWireModule());
       gameStatusMsg = "\n\n🚀 THE GAME HAS STARTED! All 3 players have joined. The bomb is now ACTIVE! 🚀";
     } else {
       const needed = 3 - room.players.length;
