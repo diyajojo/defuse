@@ -1,0 +1,29 @@
+{
+  "name": "defuse",
+  "version": "1.0.0",
+  "description": "A real-time multiplayer bomb defusal game built on the Model Context Protocol (MCP), where multiple Claude clients connect to the same shared game session.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diyajojo/defuse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/diyajojo/defuse/issues"
+  },
+  "homepage": "https://github.com/diyajojo/defuse#readme",
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/node": "^26.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  }
+}
