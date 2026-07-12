@@ -1,9 +1,11 @@
 import { roomToolSchemas, handleRoomToolCall } from "./room.js";
 import { bombToolSchemas, handleBombToolCall } from "./bomb.js";
+import { playerToolSchemas, handlePlayerToolCall } from "./player.js";
 
 export const toolsSchema = [
   ...roomToolSchemas,
   ...bombToolSchemas,
+  ...playerToolSchemas,
 ];
 
 export async function handleToolCall(name: string, args: any) {
@@ -12,6 +14,9 @@ export async function handleToolCall(name: string, args: any) {
   }
   if (name === "get_bomb_state") {
     return await handleBombToolCall(name, args);
+  }
+  if (name === "choose_role") {
+    return await handlePlayerToolCall(name, args);
   }
   return {
     isError: true,
