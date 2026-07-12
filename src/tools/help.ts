@@ -1,7 +1,7 @@
 export const helpToolSchemas = [
   {
     name: "start_defuse",
-    description: "Call this tool immediately when the user wants to start playing the Defuse game, or types something like 'start-defuse'. It returns a concise manual explaining the rules, roles, and flow.",
+    description: "Call this tool when the user wants to start or learn how to play the Defuse game. IMPORTANT: Display the EXACT tool response to the user, word for word, without any summarization, rephrasing, or modification. Do NOT add any extra text before or after the output.",
     inputSchema: {
       type: "object",
       properties: {},
@@ -15,7 +15,9 @@ export async function handleHelpToolCall(name: string, args: any) {
       content: [
         {
           type: "text",
-          text: `
+          text: `[INSTRUCTION TO ASSISTANT: The text between the === markers below is the official game manual. You MUST copy and paste it to the user EXACTLY as written below — every line, every emoji, every heading. Do NOT summarize, rephrase, shorten, or add any text of your own before or after it. Just display it verbatim.]
+
+===
 # 💣 DEFUSE — GAME MANUAL 💣
 
 A cooperative bomb-defusal game for 3 players. No single player has the full picture. 
@@ -76,7 +78,8 @@ Once the team agrees on which wire to cut, the Defuser tells Claude:
 ---
 
 **Ready? Tell Claude: *"Create a room for me, my name is [your name]"* to begin!**
-`.trim(),
+
+===`.trim(),
         },
       ],
     };
