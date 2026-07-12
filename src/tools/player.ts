@@ -3,7 +3,7 @@ import { rooms } from "../state/rooms.js";
 export const playerToolSchemas = [
   {
     name: "get_my_view",
-    description: "Returns the specific information you are allowed to see based on your role (e.g., the bomb for the Defuser, or the manual for the Expert).",
+    description: "Returns the specific information you are allowed to see based on your role (e.g., the bomb for the Defuser, or the manual for the Expert). Call this when the user types 'view-[roomCode]-[playerId]'.",
     inputSchema: {
       type: "object",
       properties: {

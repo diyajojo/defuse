@@ -4,7 +4,7 @@ import { createInitialBomb, generateWireModule } from "../state/bomb.js";
 export const roomToolSchemas = [
   {
     name: "create_room",
-    description: "Creates a new game room with a unique 6-character code and automatically joins you as the host.",
+    description: "Creates a new game room. Call this when the user types 'create-room [playerName]'.",
     inputSchema: {
       type: "object",
       properties: {
@@ -18,7 +18,7 @@ export const roomToolSchemas = [
   },
   {
     name: "join_room",
-    description: "Joins an existing game room using its 6-character room code. Registers the user as a player.",
+    description: "Joins an existing game room. Call this when the user types 'join-[roomCode]-[playerName]'.",
     inputSchema: {
       type: "object",
       properties: {

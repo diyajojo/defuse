@@ -17,7 +17,7 @@ export const bombToolSchemas = [
   },
   {
     name: "interact",
-    description: "Allows the Defuser to interact with the bomb's physical components.",
+    description: "Allows the Defuser to interact with the bomb's physical components. Call this when the user types a command like 'cut-[WIRE]-[roomCode]-[playerId]'.",
     inputSchema: {
       type: "object",
       properties: {
