@@ -4,10 +4,16 @@ import { createInitialBomb, generateWireModule } from "../state/bomb.js";
 export const roomToolSchemas = [
   {
     name: "create_room",
-    description: "Creates a new game room with a unique 6-character code and returns the room details.",
+    description: "Creates a new game room with a unique 6-character code and automatically joins you as the host.",
     inputSchema: {
       type: "object",
-      properties: {},
+      properties: {
+        playerName: {
+          type: "string",
+          description: "The name you want to use in the game (e.g., 'Agent Smith', 'Diya')",
+        },
+      },
+      required: ["playerName"],
     },
   },
   {
@@ -32,18 +38,42 @@ export const roomToolSchemas = [
 
 export async function handleRoomToolCall(name: string, args: any) {
   if (name === "create_room") {
+    const playerName = args?.playerName;
+    
+    if (!playerName) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: "Missing playerName argument. Please provide a name to create a room." }]
+      };
+    }
+    
     const code = generateUniqueRoomCode();
+    
+    // Pick a random role for the host
+    const allRoles = ["Defuser", "Expert", "Overseer"];
+    const randomRole = allRoles[Math.floor(Math.random() * allRoles.length)];
+
+    const playerId = `P-${Math.floor(Math.random() * 10000)}`;
+    const newPlayer: Player = {
+      id: playerId,
+      name: playerName,
+      role: randomRole,
+    };
+
     const newRoom: Room = {
       code,
-      players: [],
+      players: [newPlayer],
       bomb: createInitialBomb(),
     };
     rooms.set(code, newRoom);
+    
+    const playersList = `- ${newPlayer.name} (Role: ${newPlayer.role})`;
+
     return {
       content: [
         {
           type: "text",
-          text: `Room created successfully! Room Code: ${code}`,
+          text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join before the game starts... Ask your friends to join using room code: ${code}\n\nCurrent Players in Room:\n${playersList}`,
         },
       ],
     };
