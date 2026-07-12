@@ -4,6 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { toolsSchema, handleToolCall } from "./tools/index.js";
 
 const server = new Server(
   {
@@ -17,56 +18,14 @@ const server = new Server(
   }
 );
 
-let counter = 0;
-
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
-    tools: [
-      {
-        name: "hello",
-        description: "Says hello from MCP",
-        inputSchema: {
-          type: "object",
-          properties: {},
-        },
-      },
-      {
-        name: "increment",
-        description: "Increments a stateful counter on the server and returns the new value",
-        inputSchema: {
-          type: "object",
-          properties: {},
-        },
-      },
-    ],
+    tools: toolsSchema,
   };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "hello") {
-    return {
-      content: [
-        {
-          type: "text",
-          text: "Hello from MCP!",
-        },
-      ],
-    };
-  }
-
-  if (request.params.name === "increment") {
-    counter++;
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Counter has been incremented. The current value is: ${counter}`,
-        },
-      ],
-    };
-  }
-
-  throw new Error(`Tool not found: ${request.params.name}`);
+  return await handleToolCall(request.params.name, request.params.arguments);
 });
 
 async function main() {
