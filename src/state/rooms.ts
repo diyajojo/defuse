@@ -1,3 +1,5 @@
+import { Bomb, createInitialBomb } from "./bomb.js";
+
 //Room is the actual obejct which contains what a room should have 
 export interface Player {
   id: string;
@@ -8,9 +10,7 @@ export interface Player {
 export interface Room {
   code: string;
   players: Player[];
-  bombState: {
-    initialized: boolean;
-  };
+  bomb: Bomb;
 }
 
 //rooms is a dictionary which contains key as room code and value as the Room object

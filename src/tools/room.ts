@@ -1,4 +1,5 @@
 import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
+import { createInitialBomb } from "../state/bomb.js";
 
 export const roomToolSchemas = [
   {
@@ -35,7 +36,7 @@ export async function handleRoomToolCall(name: string, args: any) {
     const newRoom: Room = {
       code,
       players: [],
-      bombState: { initialized: false },
+      bomb: createInitialBomb(),
     };
     rooms.set(code, newRoom);
     return {
