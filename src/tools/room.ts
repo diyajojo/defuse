@@ -1,4 +1,4 @@
-import { generateUniqueRoomCode, rooms, Room } from "../state/rooms.js";
+import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
 
 export const roomToolSchemas = [
   {
@@ -11,7 +11,7 @@ export const roomToolSchemas = [
   },
   {
     name: "join_room",
-    description: "Joins an existing game room using its 6-character room code.",
+    description: "Joins an existing game room using its 6-character room code. Registers the user as a player.",
     inputSchema: {
       type: "object",
       properties: {
@@ -19,8 +19,12 @@ export const roomToolSchemas = [
           type: "string",
           description: "The 6-character alphanumeric room code (case-insensitive)",
         },
+        playerName: {
+          type: "string",
+          description: "The name you want to use in the game (e.g., 'Agent Smith', 'Diya')",
+        },
       },
-      required: ["roomCode"],
+      required: ["roomCode", "playerName"],
     },
   },
 ];
@@ -46,12 +50,26 @@ export async function handleRoomToolCall(name: string, args: any) {
 
   if (name === "join_room") {
     const roomCode = args?.roomCode?.toUpperCase();
+    const playerName = args?.playerName;
+    
     if (!roomCode) {
-      throw new Error("Missing roomCode argument");
+      return {
+        isError: true,
+        content: [{ type: "text", text: "Missing roomCode argument" }]
+      };
     }
+    
+    if (!playerName) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: "Missing playerName argument. Please provide a name to join." }]
+      };
+    }
+
     const room = rooms.get(roomCode);
     if (!room) {
       return {
+        isError: true,
         content: [
           {
             type: "text",
@@ -60,15 +78,31 @@ export async function handleRoomToolCall(name: string, args: any) {
         ],
       };
     }
+
+    // Generate a simple Player ID and assign a default role
+    const playerId = `P-${Math.floor(Math.random() * 10000)}`;
+    const newPlayer: Player = {
+      id: playerId,
+      name: playerName,
+      role: "Pending Assignment",
+    };
+
+    room.players.push(newPlayer);
+
+    const playersList = room.players.map(p => `- ${p.name} (Role: ${p.role})`).join("\n");
+
     return {
       content: [
         {
           type: "text",
-          text: `Successfully joined room: ${roomCode}.`,
+          text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nCurrent Players in Room:\n${playersList}`,
         },
       ],
     };
   }
 
-  throw new Error(`Tool not found in room tools: ${name}`);
+  return {
+    isError: true,
+    content: [{ type: "text", text: `Tool not found in room tools: ${name}` }]
+  };
 }

@@ -1,7 +1,13 @@
 //Room is the actual obejct which contains what a room should have 
+export interface Player {
+  id: string;
+  name: string;
+  role: string;
+}
+
 export interface Room {
   code: string;
-  players: string[];
+  players: Player[];
   bombState: {
     initialized: boolean;
   };
