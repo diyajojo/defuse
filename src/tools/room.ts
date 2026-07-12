@@ -80,15 +80,39 @@ export async function handleRoomToolCall(name: string, args: any) {
       };
     }
 
-    // Generate a simple Player ID and assign a default role
+    if (room.players.length >= 3) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error: Room ${roomCode} is already full (3 players max).` }]
+      };
+    }
+
+    // Determine available roles
+    const allRoles = ["Defuser", "Expert", "Overseer"];
+    const takenRoles = room.players.map(p => p.role);
+    const availableRoles = allRoles.filter(r => !takenRoles.includes(r));
+    
+    // Pick a random role from the available ones
+    const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+
+    // Generate a simple Player ID and assign the role
     const playerId = `P-${Math.floor(Math.random() * 10000)}`;
     const newPlayer: Player = {
       id: playerId,
       name: playerName,
-      role: "Pending Assignment",
+      role: randomRole,
     };
 
     room.players.push(newPlayer);
+    
+    let gameStatusMsg = "";
+    if (room.players.length === 3) {
+      room.bomb.status = "active";
+      gameStatusMsg = "\n\n🚀 THE GAME HAS STARTED! All 3 players have joined. The bomb is now ACTIVE! 🚀";
+    } else {
+      const needed = 3 - room.players.length;
+      gameStatusMsg = `\n\nWaiting for ${needed} more player(s) to join before the game starts... Ask your friends to join using room code: ${roomCode}`;
+    }
 
     const playersList = room.players.map(p => `- ${p.name} (Role: ${p.role})`).join("\n");
 
@@ -96,7 +120,7 @@ export async function handleRoomToolCall(name: string, args: any) {
       content: [
         {
           type: "text",
-          text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nCurrent Players in Room:\n${playersList}`,
+          text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nCurrent Players in Room:\n${playersList}${gameStatusMsg}`,
         },
       ],
     };
