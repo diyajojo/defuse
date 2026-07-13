@@ -1,5 +1,6 @@
 import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
 import { createInitialBomb, generateWireModule } from "../state/bomb.js";
+import { broadcastEvent, getGameStatusContent } from "../events.js";
 
 export const roomToolSchemas = [
   {
@@ -64,19 +65,19 @@ export async function handleRoomToolCall(name: string, args: any) {
       code,
       players: [newPlayer],
       bomb: createInitialBomb(),
+      events: [],
     };
     rooms.set(code, newRoom);
+    broadcastEvent(code, `🌟 Room ${code} created! ${newPlayer.name} joined as ${newPlayer.role}. (1/3 players)`);
     
     const playersList = `- ${newPlayer.name} (Role: ${newPlayer.role})`;
+    const statusBlock = getGameStatusContent(code);
+    const content: any[] = [
+      { type: "text", text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join...` },
+    ];
+    if (statusBlock) content.push(statusBlock);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join before the game starts... Ask your friends to join using room code: ${code}\n\nCurrent Players in Room:\n${playersList}`,
-        },
-      ],
-    };
+    return { content };
   }
 
   if (name === "join_room") {
@@ -135,6 +136,8 @@ export async function handleRoomToolCall(name: string, args: any) {
 
     room.players.push(newPlayer);
     
+    broadcastEvent(roomCode, `👋 Player ${playerName} joined the room as the ${randomRole}! (${room.players.length}/3 players)`);
+
     let gameStatusMsg = "";
     if (room.players.length === 3) {
       room.bomb.status = "active";
@@ -146,15 +149,13 @@ export async function handleRoomToolCall(name: string, args: any) {
     }
 
     const playersList = room.players.map(p => `- ${p.name} (Role: ${p.role})`).join("\n");
+    const statusBlock = getGameStatusContent(roomCode);
+    const content: any[] = [
+      { type: "text", text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n${gameStatusMsg}` },
+    ];
+    if (statusBlock) content.push(statusBlock);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nCurrent Players in Room:\n${playersList}${gameStatusMsg}`,
-        },
-      ],
-    };
+    return { content };
   }
 
   return {

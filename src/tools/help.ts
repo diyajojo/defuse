@@ -77,6 +77,15 @@ Once the team agrees on which wire to cut, the Defuser tells Claude:
 
 ---
 
+## 📡 CHECK FOR UPDATES (Any player)
+
+Want to see what's happening? Check who joined, bomb status, and recent events:
+> Tell Claude: **status-[CODE]**
+
+Use this anytime to see the latest game state — who joined, strikes, and if the bomb was defused or exploded!
+
+---
+
 **Ready? Tell Claude: "create-room [your name]" to begin!**
 
 ===`.trim(),

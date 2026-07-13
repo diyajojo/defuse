@@ -1,9 +1,24 @@
 import { rooms } from "../state/rooms.js";
+import { broadcastEvent, getGameStatus } from "../events.js";
 
 export const bombToolSchemas = [
   {
     name: "get_bomb_state",
     description: "Returns the current state of the bomb in a room, including timer, strikes, and modules.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        roomCode: {
+          type: "string",
+          description: "The 6-character room code.",
+        },
+      },
+      required: ["roomCode"],
+    },
+  },
+  {
+    name: "get_updates",
+    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'.",
     inputSchema: {
       type: "object",
       properties: {
@@ -77,6 +92,21 @@ export async function handleBombToolCall(name: string, args: any) {
     };
   }
 
+  if (name === "get_updates") {
+    const roomCode = args?.roomCode?.toUpperCase();
+    if (!roomCode) {
+      return { isError: true, content: [{ type: "text", text: "Missing roomCode argument" }] };
+    }
+    const room = rooms.get(roomCode);
+    if (!room) {
+      return { isError: true, content: [{ type: "text", text: `Error: Room ${roomCode} does not exist.` }] };
+    }
+    const status = getGameStatus(roomCode);
+    return {
+      content: [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}${status}` }]
+    };
+  }
+
   if (name === "interact") {
     const { roomCode, playerId, action, target } = args;
     if (!roomCode || !playerId || !action || !target) {
@@ -111,16 +141,21 @@ export async function handleBombToolCall(name: string, args: any) {
       
       if (wireIndex === wireModule.targetWireIndex) {
         wireModule.isDefused = true;
-        // In a real game, you check if ALL modules are defused. Here we just have 1.
         bomb.status = "defused";
-        return { content: [{ type: "text", text: `SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!` }] };
+        broadcastEvent(roomCode, `🎉 Defuser ${player.name} cut wire ${target} — CORRECT! The bomb is DEFUSED! Team wins!`);
+        const status = getGameStatus(roomCode);
+        return { content: [{ type: "text", text: `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!${status}` }] };
       } else {
         bomb.strikes++;
         if (bomb.strikes >= bomb.maxStrikes) {
           bomb.status = "exploded";
-          return { content: [{ type: "text", text: `BOOM! You cut wire ${target}, which was INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!` }] };
+          broadcastEvent(roomCode, `💥 BOOM! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}! THE BOMB EXPLODED! Team loses.`);
+          const status = getGameStatus(roomCode);
+          return { content: [{ type: "text", text: `💥 BOOM! You cut wire ${target} — INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!${status}` }] };
         }
-        return { content: [{ type: "text", text: `WRONG WIRE! You cut wire ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!` }] };
+        broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
+        const status = getGameStatus(roomCode);
+        return { content: [{ type: "text", text: `⚠️ WRONG WIRE! You cut wire ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!${status}` }] };
       }
     }
     

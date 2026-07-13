@@ -11,6 +11,7 @@ export interface Room {
   code: string;
   players: Player[];
   bomb: Bomb;
+  events: string[];
 }
 
 //rooms is a dictionary which contains key as room code and value as the Room object

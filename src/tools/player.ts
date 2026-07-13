@@ -1,4 +1,5 @@
 import { rooms } from "../state/rooms.js";
+import { getGameStatusContent } from "../events.js";
 
 export const playerToolSchemas = [
   {
@@ -44,31 +45,34 @@ export async function handlePlayerToolCall(name: string, args: any) {
     }
 
     if (room.bomb.status === "uninitialized") {
-      return {
-        content: [{ type: "text", text: `The game has not started yet. Waiting for 3 players to join (Currently: ${room.players.length}/3).` }]
-      };
+      const statusBlock = getGameStatusContent(roomCode);
+      const content: any[] = [{ type: "text", text: `The game has not started yet. Waiting for 3 players to join (Currently: ${room.players.length}/3).` }];
+      if (statusBlock) content.push(statusBlock);
+      return { content };
     }
+
+    let viewText = "";
 
     if (player.role === "Defuser") {
       const wireModule = room.bomb.modules.find(m => m.type === "wires");
       const wireText = wireModule ? wireModule.wires.join(", ") : "None";
-      return {
-        content: [{ type: "text", text: `[DEFUSER VIEW]\nYou are looking at the bomb.\nTimer: ${room.bomb.timerSeconds}s remaining\nStrikes: ${room.bomb.strikes}/${room.bomb.maxStrikes}\n\nMODULE 1: Wires\nThere are wires of the following colors in order: ${wireText}` }]
-      };
+      viewText = `[DEFUSER VIEW]\nYou are looking at the bomb.\nTimer: ${room.bomb.timerSeconds}s remaining\nStrikes: ${room.bomb.strikes}/${room.bomb.maxStrikes}\n\nMODULE 1: Wires\nThere are wires of the following colors in order: ${wireText}`;
     } else if (player.role === "Expert") {
-      return {
-        content: [{ type: "text", text: `[EXPERT VIEW]\nYou are looking at the Bomb Defusal Manual.\n\n--- WIRE MODULE INSTRUCTIONS ---\n1. If there is a red wire, cut the second wire.\n2. Otherwise, if the last wire is white, cut the last wire.\n3. Otherwise, if there is a blue wire, cut the first wire.\n4. Otherwise, cut the last wire.` }]
-      };
+      viewText = `[EXPERT VIEW]\nYou are looking at the Bomb Defusal Manual.\n\n--- WIRE MODULE INSTRUCTIONS ---\n1. If there is a red wire, cut the second wire.\n2. Otherwise, if the last wire is white, cut the last wire.\n3. Otherwise, if there is a blue wire, cut the first wire.\n4. Otherwise, cut the last wire.`;
     } else if (player.role === "Overseer") {
-      return {
-        content: [{ type: "text", text: `[OVERSEER VIEW]\nYou are monitoring the external casing of the bomb.\nTimer: ${room.bomb.timerSeconds}s remaining\nSerial Number: X1Y-234` }]
-      };
+      viewText = `[OVERSEER VIEW]\nYou are monitoring the external casing of the bomb.\nTimer: ${room.bomb.timerSeconds}s remaining\nSerial Number: X1Y-234`;
     } else {
       return {
         isError: true,
         content: [{ type: "text", text: `You have not chosen a valid role yet. Your current role is: ${player.role}` }]
       };
     }
+
+    // Return view as one content block, status as a SEPARATE content block
+    const statusBlock = getGameStatusContent(roomCode);
+    const content: any[] = [{ type: "text", text: viewText }];
+    if (statusBlock) content.push(statusBlock);
+    return { content };
   }
 
   return {
