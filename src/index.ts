@@ -11,6 +11,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { toolsSchema, handleToolCall } from "./tools/index.js";
 import { activeServers } from "./events.js";
+import { registerDashboard, pushSSE } from "./dashboard.js";
 
 const app = express();
 app.use(express.json());
@@ -126,21 +127,31 @@ app.delete("/mcp", async (req, res) => {
   await transport.handleRequest(req, res);
 });
 
+// ── Mount Dashboard Routes ──────────────────────────────────────────────
+registerDashboard(app);
+
 app.listen(PORT, () => {
   console.log(`Defuse MCP Server (Streamable HTTP) running on http://localhost:${PORT}`);
   console.log(`MCP endpoint: http://localhost:${PORT}/mcp`);
+  console.log(`Game Dashboard: http://localhost:${PORT}/game/<ROOM_CODE>`);
 });
 
 import { rooms } from "./state/rooms.js";
 import { broadcastEvent } from "./events.js";
 
-// Game Loop: Decrement timers for active rooms
+// Game Loop: Decrement timers for active rooms + push timer ticks to browser
 setInterval(() => {
   for (const [roomCode, room] of rooms.entries()) {
     if (room.bomb.status === "active" && room.bomb.timerSeconds > 0) {
       room.bomb.timerSeconds -= 1;
       
       const t = room.bomb.timerSeconds;
+      
+      // Push timer tick to browsers every second (lightweight SSE event)
+      pushSSE(roomCode, "timerTick", { 
+        timerSeconds: t, 
+        status: room.bomb.status 
+      });
       
       if (t <= 0) {
         room.bomb.timerSeconds = 0;
@@ -162,7 +173,6 @@ setInterval(() => {
     }
   }
 }, 1000);
-
 
 // Graceful shutdown
 process.on("SIGINT", async () => {

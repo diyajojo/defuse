@@ -1,6 +1,6 @@
 import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
 import { createInitialBomb, generateWireModule } from "../state/bomb.js";
-import { broadcastEvent, getGameStatusContent, getPollingInstruction } from "../events.js";
+import { broadcastEvent, getGameStatusContent } from "../events.js";
 
 export const roomToolSchemas = [
   {
@@ -71,11 +71,10 @@ export async function handleRoomToolCall(name: string, args: any) {
     rooms.set(code, newRoom);
     broadcastEvent(code, `🌟 Room ${code} created! ${newPlayer.name} joined as ${newPlayer.role}. (1/3 players)`);
     
-    const playersList = `- ${newPlayer.name} (Role: ${newPlayer.role})`;
+    const dashboardUrl = `http://localhost:3001/game/${code}`;
     const statusBlock = getGameStatusContent(code);
-    const pollingHint = getPollingInstruction(code);
     const content: any[] = [
-      { type: "text", text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join...${pollingHint}` },
+      { type: "text", text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join...\n\n🖥️ LIVE DASHBOARD: Open this link in your browser for real-time game updates:\n${dashboardUrl}` },
     ];
     if (statusBlock) content.push(statusBlock);
 
@@ -150,11 +149,11 @@ export async function handleRoomToolCall(name: string, args: any) {
       gameStatusMsg = `\n\nWaiting for ${needed} more player(s) to join before the game starts... Ask your friends to join using room code: ${roomCode}`;
     }
 
+    const dashboardUrl = `http://localhost:3001/game/${roomCode}`;
     const playersList = room.players.map(p => `- ${p.name} (Role: ${p.role})`).join("\n");
     const statusBlock = getGameStatusContent(roomCode);
-    const pollingHint = getPollingInstruction(roomCode);
     const content: any[] = [
-      { type: "text", text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n${gameStatusMsg}${pollingHint}` },
+      { type: "text", text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n${gameStatusMsg}\n\n🖥️ LIVE DASHBOARD: Open this link in your browser for real-time game updates:\n${dashboardUrl}` },
     ];
     if (statusBlock) content.push(statusBlock);
 

@@ -1,5 +1,5 @@
 import { rooms } from "../state/rooms.js";
-import { broadcastEvent, getGameStatusContent, getPollingInstruction, getEventsSince } from "../events.js";
+import { broadcastEvent, getGameStatusContent } from "../events.js";
 
 export const bombToolSchemas = [
   {
@@ -18,17 +18,13 @@ export const bombToolSchemas = [
   },
   {
     name: "get_updates",
-    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'. IMPORTANT: After displaying the result, you MUST call this tool again after ~15 seconds to poll for live updates. Keep polling until the game ends.",
+    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'.",
     inputSchema: {
       type: "object",
       properties: {
         roomCode: {
           type: "string",
           description: "The 6-character room code.",
-        },
-        sinceSequence: {
-          type: "number",
-          description: "Optional. The last event sequence number you received. Only new events since this sequence will be returned. Omit to get all recent events.",
         },
       },
       required: ["roomCode"],
@@ -77,11 +73,13 @@ export async function handleBombToolCall(name: string, args: any) {
     }
 
     const bomb = room.bomb;
+    const mins = Math.floor(bomb.timerSeconds / 60);
+    const secs = bomb.timerSeconds % 60;
     
     // Formatting the bomb state nicely
     const output = [
       `💣 BOMB STATUS [${bomb.status.toUpperCase()}] 💣`,
-      `Timer: ${bomb.timerSeconds} seconds remaining`,
+      `Timer: ${mins}m ${secs}s remaining`,
       `Strikes: ${bomb.strikes}/${bomb.maxStrikes}`,
       `Modules Active: ${bomb.modules.length}`,
     ].join("\n");
@@ -98,7 +96,6 @@ export async function handleBombToolCall(name: string, args: any) {
 
   if (name === "get_updates") {
     const roomCode = args?.roomCode?.toUpperCase();
-    const sinceSequence = args?.sinceSequence ?? 0;
     if (!roomCode) {
       return { isError: true, content: [{ type: "text", text: "Missing roomCode argument" }] };
     }
@@ -107,26 +104,9 @@ export async function handleBombToolCall(name: string, args: any) {
       return { isError: true, content: [{ type: "text", text: `Error: Room ${roomCode} does not exist.` }] };
     }
 
-    // Get events since last poll
-    const { events: newEvents, currentSequence } = getEventsSince(roomCode, sinceSequence);
-    
-    let headerText = `📡 LIVE UPDATE FOR ROOM ${roomCode} (seq: ${currentSequence})`;
-    
-    if (sinceSequence > 0 && newEvents.length === 0) {
-      headerText += "\n\n✅ No new events since last check.";
-    } else if (sinceSequence > 0 && newEvents.length > 0) {
-      headerText += `\n\n🆕 ${newEvents.length} NEW EVENT(S):\n` + newEvents.map(e => `  🔔 ${e}`).join("\n");
-    }
-
-    const pollingHint = getPollingInstruction(roomCode);
-    headerText += pollingHint;
-    // Tell Claude what sinceSequence to use next time
-    if (room.bomb.status !== "defused" && room.bomb.status !== "exploded") {
-      headerText += `\n\n[When you call get_updates next, use sinceSequence: ${currentSequence}]`;
-    }
-
+    const dashboardUrl = `http://localhost:3001/game/${roomCode}`;
     const statusBlock = getGameStatusContent(roomCode);
-    const content: any[] = [{ type: "text", text: headerText }];
+    const content: any[] = [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}\n\n🖥️ For real-time live updates, open the dashboard in your browser:\n${dashboardUrl}` }];
     if (statusBlock) content.push(statusBlock);
     return { content };
   }
@@ -182,8 +162,7 @@ export async function handleBombToolCall(name: string, args: any) {
       }
 
       const statusBlock = getGameStatusContent(roomCode);
-      const pollingHint = getPollingInstruction(roomCode);
-      const content: any[] = [{ type: "text", text: textResponse + pollingHint }];
+      const content: any[] = [{ type: "text", text: textResponse }];
       if (statusBlock) content.push(statusBlock);
       return { content };
     }
