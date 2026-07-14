@@ -9,7 +9,6 @@ export function broadcastEvent(roomCode: string, message: string) {
   const room = rooms.get(roomCode.toUpperCase());
   if (room) {
     room.events.push(message);
-    room.eventSequence += 1;
   }
 
   // Push to all connected browsers via SSE
@@ -26,14 +25,6 @@ export function broadcastEvent(roomCode: string, message: string) {
   }
 }
 
-// Format recent events as a readable block to include in tool responses
-export function getRecentEventsText(roomCode: string): string {
-  const room = rooms.get(roomCode.toUpperCase());
-  if (!room || room.events.length === 0) return "";
-
-  const recentEvents = room.events.slice(-5); // Last 5 events
-  return "\n\n--- 📢 RECENT EVENTS ---\n" + recentEvents.map(e => `• ${e}`).join("\n");
-}
 
 // Returns a full shared game status as a separate content block
 export function getGameStatusContent(roomCode: string): { type: string; text: string } | null {

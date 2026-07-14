@@ -12,7 +12,6 @@ export interface Room {
   players: Player[];
   bomb: Bomb;
   events: string[];
-  eventSequence: number; // Increments on every event, used for diff-based polling
 }
 
 //rooms is a dictionary which contains key as room code and value as the Room object

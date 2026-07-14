@@ -66,7 +66,6 @@ export async function handleRoomToolCall(name: string, args: any) {
       players: [newPlayer],
       bomb: createInitialBomb(),
       events: [],
-      eventSequence: 0,
     };
     rooms.set(code, newRoom);
     broadcastEvent(code, `🌟 Room ${code} created! ${newPlayer.name} joined as ${newPlayer.role}. (1/3 players)`);
