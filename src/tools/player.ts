@@ -1,5 +1,5 @@
 import { rooms } from "../state/rooms.js";
-import { getGameStatusContent } from "../events.js";
+import { getGameStatusContent, getPollingInstruction } from "../events.js";
 
 export const playerToolSchemas = [
   {
@@ -70,7 +70,8 @@ export async function handlePlayerToolCall(name: string, args: any) {
 
     // Return view as one content block, status as a SEPARATE content block
     const statusBlock = getGameStatusContent(roomCode);
-    const content: any[] = [{ type: "text", text: viewText }];
+    const pollingHint = getPollingInstruction(roomCode);
+    const content: any[] = [{ type: "text", text: viewText + pollingHint }];
     if (statusBlock) content.push(statusBlock);
     return { content };
   }

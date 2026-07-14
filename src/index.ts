@@ -131,6 +131,39 @@ app.listen(PORT, () => {
   console.log(`MCP endpoint: http://localhost:${PORT}/mcp`);
 });
 
+import { rooms } from "./state/rooms.js";
+import { broadcastEvent } from "./events.js";
+
+// Game Loop: Decrement timers for active rooms
+setInterval(() => {
+  for (const [roomCode, room] of rooms.entries()) {
+    if (room.bomb.status === "active" && room.bomb.timerSeconds > 0) {
+      room.bomb.timerSeconds -= 1;
+      
+      const t = room.bomb.timerSeconds;
+      
+      if (t <= 0) {
+        room.bomb.timerSeconds = 0;
+        room.bomb.status = "exploded";
+        broadcastEvent(roomCode, "💥 BOOM! Time ran out! THE BOMB EXPLODED! Team loses.");
+      } else if (t === 240) {
+        broadcastEvent(roomCode, "⏱️ 4 minutes remaining.");
+      } else if (t === 180) {
+        broadcastEvent(roomCode, "⏱️ 3 minutes remaining.");
+      } else if (t === 120) {
+        broadcastEvent(roomCode, "⚠️ 2 minutes remaining!");
+      } else if (t === 60) {
+        broadcastEvent(roomCode, "🚨 1 MINUTE remaining! Hurry!");
+      } else if (t === 30) {
+        broadcastEvent(roomCode, "🔴 30 SECONDS! MOVE FAST!");
+      } else if (t === 10) {
+        broadcastEvent(roomCode, "💀 10 SECONDS LEFT!!!");
+      }
+    }
+  }
+}, 1000);
+
+
 // Graceful shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down...");

@@ -1,5 +1,5 @@
 import { rooms } from "../state/rooms.js";
-import { broadcastEvent, getGameStatus } from "../events.js";
+import { broadcastEvent, getGameStatusContent, getPollingInstruction, getEventsSince } from "../events.js";
 
 export const bombToolSchemas = [
   {
@@ -18,13 +18,17 @@ export const bombToolSchemas = [
   },
   {
     name: "get_updates",
-    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'.",
+    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'. IMPORTANT: After displaying the result, you MUST call this tool again after ~15 seconds to poll for live updates. Keep polling until the game ends.",
     inputSchema: {
       type: "object",
       properties: {
         roomCode: {
           type: "string",
           description: "The 6-character room code.",
+        },
+        sinceSequence: {
+          type: "number",
+          description: "Optional. The last event sequence number you received. Only new events since this sequence will be returned. Omit to get all recent events.",
         },
       },
       required: ["roomCode"],
@@ -94,6 +98,7 @@ export async function handleBombToolCall(name: string, args: any) {
 
   if (name === "get_updates") {
     const roomCode = args?.roomCode?.toUpperCase();
+    const sinceSequence = args?.sinceSequence ?? 0;
     if (!roomCode) {
       return { isError: true, content: [{ type: "text", text: "Missing roomCode argument" }] };
     }
@@ -101,10 +106,29 @@ export async function handleBombToolCall(name: string, args: any) {
     if (!room) {
       return { isError: true, content: [{ type: "text", text: `Error: Room ${roomCode} does not exist.` }] };
     }
-    const status = getGameStatus(roomCode);
-    return {
-      content: [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}${status}` }]
-    };
+
+    // Get events since last poll
+    const { events: newEvents, currentSequence } = getEventsSince(roomCode, sinceSequence);
+    
+    let headerText = `📡 LIVE UPDATE FOR ROOM ${roomCode} (seq: ${currentSequence})`;
+    
+    if (sinceSequence > 0 && newEvents.length === 0) {
+      headerText += "\n\n✅ No new events since last check.";
+    } else if (sinceSequence > 0 && newEvents.length > 0) {
+      headerText += `\n\n🆕 ${newEvents.length} NEW EVENT(S):\n` + newEvents.map(e => `  🔔 ${e}`).join("\n");
+    }
+
+    const pollingHint = getPollingInstruction(roomCode);
+    headerText += pollingHint;
+    // Tell Claude what sinceSequence to use next time
+    if (room.bomb.status !== "defused" && room.bomb.status !== "exploded") {
+      headerText += `\n\n[When you call get_updates next, use sinceSequence: ${currentSequence}]`;
+    }
+
+    const statusBlock = getGameStatusContent(roomCode);
+    const content: any[] = [{ type: "text", text: headerText }];
+    if (statusBlock) content.push(statusBlock);
+    return { content };
   }
 
   if (name === "interact") {
@@ -139,24 +163,29 @@ export async function handleBombToolCall(name: string, args: any) {
         return { isError: true, content: [{ type: "text", text: "This module is already defused!" }] };
       }
       
+      let textResponse = "";
       if (wireIndex === wireModule.targetWireIndex) {
         wireModule.isDefused = true;
         bomb.status = "defused";
         broadcastEvent(roomCode, `🎉 Defuser ${player.name} cut wire ${target} — CORRECT! The bomb is DEFUSED! Team wins!`);
-        const status = getGameStatus(roomCode);
-        return { content: [{ type: "text", text: `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!${status}` }] };
+        textResponse = `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!`;
       } else {
         bomb.strikes++;
         if (bomb.strikes >= bomb.maxStrikes) {
           bomb.status = "exploded";
           broadcastEvent(roomCode, `💥 BOOM! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}! THE BOMB EXPLODED! Team loses.`);
-          const status = getGameStatus(roomCode);
-          return { content: [{ type: "text", text: `💥 BOOM! You cut wire ${target} — INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!${status}` }] };
+          textResponse = `💥 BOOM! You cut wire ${target} — INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!`;
+        } else {
+          broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
+          textResponse = `⚠️ WRONG WIRE! You cut wire ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!`;
         }
-        broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
-        const status = getGameStatus(roomCode);
-        return { content: [{ type: "text", text: `⚠️ WRONG WIRE! You cut wire ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!${status}` }] };
       }
+
+      const statusBlock = getGameStatusContent(roomCode);
+      const pollingHint = getPollingInstruction(roomCode);
+      const content: any[] = [{ type: "text", text: textResponse + pollingHint }];
+      if (statusBlock) content.push(statusBlock);
+      return { content };
     }
     
     return { isError: true, content: [{ type: "text", text: `Unknown action: ${action}` }] };

@@ -1,6 +1,6 @@
 import { generateUniqueRoomCode, rooms, Room, Player } from "../state/rooms.js";
 import { createInitialBomb, generateWireModule } from "../state/bomb.js";
-import { broadcastEvent, getGameStatusContent } from "../events.js";
+import { broadcastEvent, getGameStatusContent, getPollingInstruction } from "../events.js";
 
 export const roomToolSchemas = [
   {
@@ -66,14 +66,16 @@ export async function handleRoomToolCall(name: string, args: any) {
       players: [newPlayer],
       bomb: createInitialBomb(),
       events: [],
+      eventSequence: 0,
     };
     rooms.set(code, newRoom);
     broadcastEvent(code, `🌟 Room ${code} created! ${newPlayer.name} joined as ${newPlayer.role}. (1/3 players)`);
     
     const playersList = `- ${newPlayer.name} (Role: ${newPlayer.role})`;
     const statusBlock = getGameStatusContent(code);
+    const pollingHint = getPollingInstruction(code);
     const content: any[] = [
-      { type: "text", text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join...` },
+      { type: "text", text: `Room created successfully! Room Code: ${code}\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n\nWaiting for 2 more player(s) to join...${pollingHint}` },
     ];
     if (statusBlock) content.push(statusBlock);
 
@@ -150,8 +152,9 @@ export async function handleRoomToolCall(name: string, args: any) {
 
     const playersList = room.players.map(p => `- ${p.name} (Role: ${p.role})`).join("\n");
     const statusBlock = getGameStatusContent(roomCode);
+    const pollingHint = getPollingInstruction(roomCode);
     const content: any[] = [
-      { type: "text", text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n${gameStatusMsg}` },
+      { type: "text", text: `Successfully joined room ${roomCode}!\n\nYour Identity:\n- Name: ${newPlayer.name}\n- Player ID: ${newPlayer.id}\n- Role: ${newPlayer.role}\n${gameStatusMsg}${pollingHint}` },
     ];
     if (statusBlock) content.push(statusBlock);
 
