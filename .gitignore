@@ -28,3 +28,5 @@ out/
 *.njsproj
 *.sln
 *.sw?
+
+guide/
