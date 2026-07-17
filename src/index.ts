@@ -12,11 +12,10 @@ import {
 import { toolsSchema, handleToolCall } from "./tools/index.js";
 import { activeServers } from "./events.js";
 import { registerDashboard, pushSSE } from "./dashboard.js";
+import { PORT, BASE_URL } from "./config.js";
 
 const app = express();
 app.use(express.json());
-
-const PORT = process.env.PORT || 3001;
 
 // Map to store transports by session ID
 const transports = new Map<string, StreamableHTTPServerTransport>();
@@ -131,9 +130,9 @@ app.delete("/mcp", async (req, res) => {
 registerDashboard(app);
 
 app.listen(PORT, () => {
-  console.log(`Defuse MCP Server (Streamable HTTP) running on http://localhost:${PORT}`);
-  console.log(`MCP endpoint: http://localhost:${PORT}/mcp`);
-  console.log(`Game Dashboard: http://localhost:${PORT}/game/<ROOM_CODE>`);
+  console.log(`Defuse MCP Server (Streamable HTTP) running on port ${PORT}`);
+  console.log(`MCP endpoint: ${BASE_URL}/mcp`);
+  console.log(`Game Dashboard: ${BASE_URL}/game/<ROOM_CODE>`);
 });
 
 import { rooms } from "./state/rooms.js";

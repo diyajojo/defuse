@@ -1,9 +1,10 @@
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { BASE_URL } from "./config.js";
 
 async function main() {
   const stdioTransport = new StdioServerTransport();
-  const httpTransport = new StreamableHTTPClientTransport(new URL("http://localhost:3001/mcp"));
+  const httpTransport = new StreamableHTTPClientTransport(new URL(`${BASE_URL}/mcp`));
 
   // Connect both sides
   await stdioTransport.start();
