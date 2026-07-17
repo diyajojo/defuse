@@ -1,6 +1,5 @@
 import { rooms } from "../state/rooms.js";
 import { broadcastEvent, getGameStatusContent } from "../events.js";
-import { BASE_URL } from "../config.js";
 
 export const bombToolSchemas = [
   {
@@ -105,9 +104,8 @@ export async function handleBombToolCall(name: string, args: any) {
       return { isError: true, content: [{ type: "text", text: `Error: Room ${roomCode} does not exist.` }] };
     }
 
-    const dashboardUrl = `${BASE_URL}/game/${roomCode}`;
     const statusBlock = getGameStatusContent(roomCode);
-    const content: any[] = [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}\n\n🖥️ For real-time live updates, open the dashboard in your browser:\n${dashboardUrl}` }];
+    const content: any[] = [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}` }];
     if (statusBlock) content.push(statusBlock);
     return { content };
   }

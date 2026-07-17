@@ -11,7 +11,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { toolsSchema, handleToolCall } from "./tools/index.js";
 import { activeServers } from "./events.js";
-import { registerDashboard, pushSSE } from "./dashboard.js";
 import { PORT, BASE_URL } from "./config.js";
 
 const app = express();
@@ -126,13 +125,9 @@ app.delete("/mcp", async (req, res) => {
   await transport.handleRequest(req, res);
 });
 
-// ── Mount Dashboard Routes ──────────────────────────────────────────────
-registerDashboard(app);
-
 app.listen(PORT, () => {
   console.log(`Defuse MCP Server (Streamable HTTP) running on port ${PORT}`);
   console.log(`MCP endpoint: ${BASE_URL}/mcp`);
-  console.log(`Game Dashboard: ${BASE_URL}/game/<ROOM_CODE>`);
 });
 
 import { rooms } from "./state/rooms.js";
@@ -145,12 +140,6 @@ setInterval(() => {
       room.bomb.timerSeconds -= 1;
       
       const t = room.bomb.timerSeconds;
-      
-      // Push timer tick to browsers every second (lightweight SSE event)
-      pushSSE(roomCode, "timerTick", { 
-        timerSeconds: t, 
-        status: room.bomb.status 
-      });
       
       if (t <= 0) {
         room.bomb.timerSeconds = 0;

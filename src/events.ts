@@ -1,6 +1,5 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { rooms } from "./state/rooms.js";
-import { pushSSE, pushFullState } from "./dashboard.js";
 
 export const activeServers = new Set<Server>();
 
@@ -10,11 +9,6 @@ export function broadcastEvent(roomCode: string, message: string) {
   if (room) {
     room.events.push(message);
   }
-
-  // Push to all connected browsers via SSE
-  pushSSE(roomCode, "gameEvent", { message });
-  // Also push full state so dashboards can update everything
-  pushFullState(roomCode);
 
   // Best-effort MCP server push (goes to dev logs only)
   for (const server of activeServers) {

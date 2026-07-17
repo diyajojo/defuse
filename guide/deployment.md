@@ -6,7 +6,7 @@ This guide explains how to deploy the **Defuse MCP Server** to Render (Cloud Net
 
 ## 1. Deploy the Server on Render
 
-The Server maintains the shared game state, runs the game loop, and hosts the browser dashboard.
+The Server maintains the shared game state, manages active rooms, and runs the game loop.
 
 ### Step 1: Create a Render Web Service
 1. Sign in to your [Render Dashboard](https://dashboard.render.com/).
@@ -27,9 +27,6 @@ Go to the **Environment** tab of your Render service and add the following:
 | Key | Value | Description |
 | :--- | :--- | :--- |
 | `BASE_URL` | `https://your-service-name.onrender.com` | Replace with the **actual URL** Render assigns to your Web Service. |
-
-> [!IMPORTANT]
-> The `BASE_URL` environment variable tells the game logic what domain to use when generating dashboard links. If not set, it will default to `localhost`.
 
 ---
 
@@ -55,7 +52,7 @@ Before setting up the local proxy, verify that your Render server is up and resp
 
 Because Claude Desktop communicates over standard input/output (`stdio`), you cannot connect it directly to a remote network server. The **Proxy** runs locally, listens to Claude over `stdio`, and forwards the requests to the Render server via HTTP.
 
-### Option A: Run manually from the command line (for testing)
+### Run manually from the command line (for testing)
 Run the built proxy on your machine using your new Render URL:
 ```bash
 # Build the typescript files
@@ -103,6 +100,6 @@ Add the configuration block pointing to your local repository directory and remo
 ## 5. Play with Friends!
 
 1. Player 1 runs `create_room` in Claude Desktop (using their player name).
-2. Claude will output the **Room Code** and a **Live Dashboard** URL (pointing to Render!).
-3. Open the Dashboard link in your browser to view the real-time game status.
-4. Tell your friends the room code. They can join by running `join_room` in their own Claude Desktop instances.
+2. Claude will output the **Room Code** and confirmation text.
+3. Tell your friends the room code. They can join by running `join_room` in their own Claude Desktop instances.
+4. Use the game status and information tools to collaborate and defuse the bomb!
