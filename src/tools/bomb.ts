@@ -18,7 +18,7 @@ export const bombToolSchemas = [
   },
   {
     name: "get_updates",
-    description: "Returns the latest game status, all players, bomb state, and recent events for a room. Call this when the user types 'status-[roomCode]'.",
+    description: "Returns the latest game status, all players, bomb state, and recent events for a room. TRIGGER: Call this ONLY when the user types exactly 'view room [roomCode]'.",
     inputSchema: {
       type: "object",
       properties: {
@@ -32,7 +32,7 @@ export const bombToolSchemas = [
   },
   {
     name: "interact",
-    description: "Allows the Defuser to interact with the bomb's physical components. Call this when the user types a command like 'cut-[WIRE]-[roomCode]-[playerId]'.",
+    description: "Allows the Defuser to cut a wire. TRIGGER: Call this ONLY when the user types exactly 'cut [wire number] [player ID]'. Provide 'cut_wire' as action, the wire number as target, your player ID, and infer the room code from context.",
     inputSchema: {
       type: "object",
       properties: {

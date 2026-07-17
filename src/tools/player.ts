@@ -4,7 +4,7 @@ import { getGameStatusContent } from "../events.js";
 export const playerToolSchemas = [
   {
     name: "get_my_view",
-    description: "Returns the specific information you are allowed to see based on your role (e.g., the bomb for the Defuser, or the manual for the Expert). Call this when the user types 'view-[roomCode]-[playerId]'.",
+    description: "Returns the specific information you are allowed to see based on your role. TRIGGER: Call this ONLY when the user types exactly 'view [roomCode] [playerId]'.",
     inputSchema: {
       type: "object",
       properties: {

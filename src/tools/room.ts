@@ -5,7 +5,7 @@ import { broadcastEvent, getGameStatusContent } from "../events.js";
 export const roomToolSchemas = [
   {
     name: "create_room",
-    description: "Creates a new game room. Call this when the user types 'create-room [playerName]'.",
+    description: "Creates a new game room. TRIGGER: Call this ONLY when the user types exactly 'create room [playerName]'.",
     inputSchema: {
       type: "object",
       properties: {
@@ -19,7 +19,7 @@ export const roomToolSchemas = [
   },
   {
     name: "join_room",
-    description: "Joins an existing game room. Call this when the user types 'join-[roomCode]-[playerName]'.",
+    description: "Joins an existing game room. TRIGGER: Call this ONLY when the user types exactly 'join room [roomCode] [playerName]'.",
     inputSchema: {
       type: "object",
       properties: {
