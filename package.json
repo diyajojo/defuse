@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@types/eventsource": "^1.1.15",
+    "dotenv": "^17.4.2",
     "eventsource": "^4.1.0",
     "express": "^5.2.1"
   }
