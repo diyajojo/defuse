@@ -60,9 +60,9 @@ export async function handlePlayerToolCall(name: string, args: any) {
       const wireText = wireModule ? wireModule.wires.join(", ") : "None";
       viewText = `[DEFUSER VIEW]\nYou are looking at the bomb.\nTimer: ${mins}m ${secs}s remaining\nStrikes: ${room.bomb.strikes}/${room.bomb.maxStrikes}\n\nMODULE 1: Wires\nThere are wires of the following colors in order: ${wireText}`;
     } else if (player.role === "Expert") {
-      viewText = `[EXPERT VIEW]\nYou are looking at the Bomb Defusal Manual.\n\n--- WIRE MODULE INSTRUCTIONS ---\n1. If there is a red wire, cut the second wire.\n2. Otherwise, if the last wire is white, cut the last wire.\n3. Otherwise, if there is a blue wire, cut the first wire.\n4. Otherwise, cut the last wire.`;
+      viewText = `[EXPERT VIEW]\nYou are looking at the Bomb Defusal Manual.\n\n--- WIRE MODULE INSTRUCTIONS ---\nFirst, ask the Overseer for the bomb's Serial Number.\n\nIF THE LAST DIGIT OF THE SERIAL NUMBER IS ODD:\n1. If there is a red wire, cut the second wire.\n2. Otherwise, if the last wire is white, cut the last wire.\n3. Otherwise, if there is a blue wire, cut the first wire.\n4. Otherwise, cut the last wire.\n\nIF THE LAST DIGIT OF THE SERIAL NUMBER IS EVEN:\n1. If there is a red wire, cut the first wire.\n2. Otherwise, if the last wire is white, cut the second wire.\n3. Otherwise, if there is a blue wire, cut the last wire.\n4. Otherwise, cut the first wire.`;
     } else if (player.role === "Overseer") {
-      viewText = `[OVERSEER VIEW]\nYou are monitoring the external casing of the bomb.\nTimer: ${mins}m ${secs}s remaining\nSerial Number: X1Y-234`;
+      viewText = `[OVERSEER VIEW]\nYou are monitoring the external casing of the bomb.\nTimer: ${mins}m ${secs}s remaining\nSerial Number: ${room.bomb.serialNumber}`;
     } else {
       return {
         isError: true,
