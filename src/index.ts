@@ -57,7 +57,22 @@ function createServer(): Server {
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    return await handleToolCall(request.params.name, request.params.arguments);
+    try {
+      return await handleToolCall(request.params.name, request.params.arguments);
+    } catch (error) {
+      console.error(`[Tool Error] Error executing tool ${request.params.name}:`, error);
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Internal Server Error executing tool '${request.params.name}': ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
+      };
+    }
   });
 
   return server;
