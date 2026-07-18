@@ -50,8 +50,11 @@ The Defuser sees three colored buttons: **RED**, **BLUE**, and **WHITE**. The Ex
 
 ##  How to Play
 
+*(Note: If you ever forget how to play or need the manual, you can use the **`start-defuse`** prompt built into the MCP server via Claude Desktop's prompt menu to get a full guide!)*
+
 ### Step 1 — Setup
 One player creates a room. Two others join using the room code. Each player is randomly assigned a role.
+
 
 ```
 create-room-[YOUR NAME]        → Creates a room, gives you a Room Code + Player ID
