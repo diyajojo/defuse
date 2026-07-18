@@ -39,7 +39,7 @@ export const bombToolSchemas = [
   }
 ];
 
-export async function handleBombToolCall(name: string, args: any) {
+export async function handleBombToolCall(name: string, args: any, sessionId: string) {
 
   if (name === "get_status") {
     const roomCode = args?.roomCode?.toUpperCase();
@@ -69,6 +69,10 @@ export async function handleBombToolCall(name: string, args: any) {
     const player = room.players.find(p => p.id === playerId);
     if (!player) return { isError: true, content: [{ type: "text", text: `Player ${playerId} not found.` }] };
     
+    if (player.sessionId !== sessionId) {
+      return { isError: true, content: [{ type: "text", text: `🔒 SECURITY ALERT: You cannot perform actions as Player ${playerId}. Please make sure you are using your own Player ID.` }] };
+    }
+
     if (player.role !== "Defuser") {
       return { isError: true, content: [{ type: "text", text: `Error: Only the Defuser can physically interact with the bomb! You are a ${player.role}.` }] };
     }

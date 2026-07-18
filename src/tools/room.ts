@@ -37,7 +37,7 @@ export const roomToolSchemas = [
   },
 ];
 
-export async function handleRoomToolCall(name: string, args: any) {
+export async function handleRoomToolCall(name: string, args: any, sessionId: string) {
   if (name === "create_room") {
     const playerName = args?.playerName;
     
@@ -59,6 +59,7 @@ export async function handleRoomToolCall(name: string, args: any) {
       id: playerId,
       name: playerName,
       role: randomRole,
+      sessionId,
     };
 
     const newRoom: Room = {
@@ -131,6 +132,7 @@ export async function handleRoomToolCall(name: string, args: any) {
       id: playerId,
       name: playerName,
       role: randomRole,
+      sessionId,
     };
 
     room.players.push(newPlayer);

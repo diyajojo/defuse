@@ -5,6 +5,7 @@ export interface Player {
   id: string;
   name: string;
   role: string;
+  sessionId: string;
 }
 
 export interface Room {

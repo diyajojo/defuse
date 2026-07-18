@@ -10,15 +10,15 @@ export const toolsSchema = [
   ...helpToolSchemas,
 ];
 
-export async function handleToolCall(name: string, args: any) {
+export async function handleToolCall(name: string, args: any, sessionId: string) {
   if (roomToolSchemas.some(t => t.name === name)) {
-    return await handleRoomToolCall(name, args);
+    return await handleRoomToolCall(name, args, sessionId);
   }
   if (bombToolSchemas.some(t => t.name === name)) {
-    return await handleBombToolCall(name, args);
+    return await handleBombToolCall(name, args, sessionId);
   }
   if (playerToolSchemas.some(t => t.name === name)) {
-    return await handlePlayerToolCall(name, args);
+    return await handlePlayerToolCall(name, args, sessionId);
   }
   if (helpToolSchemas.some(t => t.name === name)) {
     return await handleHelpToolCall(name, args);

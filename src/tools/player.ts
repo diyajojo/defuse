@@ -23,7 +23,7 @@ export const playerToolSchemas = [
   },
 ];
 
-export async function handlePlayerToolCall(name: string, args: any) {
+export async function handlePlayerToolCall(name: string, args: any, sessionId: string) {
   if (name === "get_my_view") {
     const roomCode = args?.roomCode?.toUpperCase();
     const playerId = args?.playerId;
@@ -43,6 +43,10 @@ export async function handlePlayerToolCall(name: string, args: any) {
     const player = room.players.find(p => p.id === playerId);
     if (!player) {
       return { isError: true, content: [{ type: "text", text: `Error: Player ${playerId} not found in room ${roomCode}.` }] };
+    }
+
+    if (player.sessionId !== sessionId) {
+      return { isError: true, content: [{ type: "text", text: `🔒 SECURITY ALERT: You cannot perform actions as Player ${playerId}. Please make sure you are using your own Player ID.` }] };
     }
 
     if (room.bomb.status === "uninitialized") {

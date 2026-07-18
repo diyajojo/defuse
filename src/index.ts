@@ -19,7 +19,7 @@ app.use(express.json());
 // Map to store transports by session ID
 const transports = new Map<string, StreamableHTTPServerTransport>();
 
-function createServer(): Server {
+function createServer(sessionId: string): Server {
   const server = new Server(
     { name: "defuse-server", version: "1.0.0" },
     { capabilities: { tools: {}, prompts: {}, logging: {} } }
@@ -58,7 +58,7 @@ function createServer(): Server {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
-      return await handleToolCall(request.params.name, request.params.arguments);
+      return await handleToolCall(request.params.name, request.params.arguments, sessionId);
     } catch (error) {
       console.error(`[Tool Error] Error executing tool ${request.params.name}:`, error);
       return {
@@ -89,15 +89,16 @@ app.post("/mcp", async (req, res) => {
     transport = transports.get(sessionId)!;
   } else if (!sessionId && isInitializeRequest(req.body)) {
     // New session — create transport + server
+    const newSessionId = randomUUID();
     transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (newSessionId) => {
-        transports.set(newSessionId, transport);
-        console.log(`Session initialized: ${newSessionId}`);
+      sessionIdGenerator: () => newSessionId,
+      onsessioninitialized: (sid) => {
+        transports.set(sid, transport);
+        console.log(`Session initialized: ${sid}`);
       },
     });
 
-    const server = createServer();
+    const server = createServer(newSessionId);
 
     transport.onclose = () => {
       const sid = transport.sessionId;
