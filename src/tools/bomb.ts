@@ -74,7 +74,7 @@ export async function handleBombToolCall(name: string, args: any) {
 
     const bomb = room.bomb;
     const mins = Math.floor(bomb.timerSeconds / 60);
-    const secs = bomb.timerSeconds % 60;
+    const secs = Math.floor(bomb.timerSeconds % 60);
     
     // Formatting the bomb state nicely
     const output = [

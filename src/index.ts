@@ -152,25 +152,30 @@ import { broadcastEvent } from "./events.js";
 setInterval(() => {
   for (const [roomCode, room] of rooms.entries()) {
     if (room.bomb.status === "active" && room.bomb.timerSeconds > 0) {
-      room.bomb.timerSeconds -= 1;
+      const oldT = room.bomb.timerSeconds;
       
-      const t = room.bomb.timerSeconds;
+      let tickAmount = 1;
+      if (room.bomb.strikes === 1) tickAmount = 1.25;
+      else if (room.bomb.strikes >= 2) tickAmount = 1.5;
       
-      if (t <= 0) {
+      room.bomb.timerSeconds -= tickAmount;
+      const newT = room.bomb.timerSeconds;
+      
+      if (newT <= 0 && oldT > 0) {
         room.bomb.timerSeconds = 0;
         room.bomb.status = "exploded";
         broadcastEvent(roomCode, "💥 BOOM! Time ran out! THE BOMB EXPLODED! Team loses.");
-      } else if (t === 240) {
+      } else if (newT <= 240 && oldT > 240) {
         broadcastEvent(roomCode, "⏱️ 4 minutes remaining.");
-      } else if (t === 180) {
+      } else if (newT <= 180 && oldT > 180) {
         broadcastEvent(roomCode, "⏱️ 3 minutes remaining.");
-      } else if (t === 120) {
+      } else if (newT <= 120 && oldT > 120) {
         broadcastEvent(roomCode, "⚠️ 2 minutes remaining!");
-      } else if (t === 60) {
+      } else if (newT <= 60 && oldT > 60) {
         broadcastEvent(roomCode, "🚨 1 MINUTE remaining! Hurry!");
-      } else if (t === 30) {
+      } else if (newT <= 30 && oldT > 30) {
         broadcastEvent(roomCode, "🔴 30 SECONDS! MOVE FAST!");
-      } else if (t === 10) {
+      } else if (newT <= 10 && oldT > 10) {
         broadcastEvent(roomCode, "💀 10 SECONDS LEFT!!!");
       }
     }

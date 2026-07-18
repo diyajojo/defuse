@@ -53,7 +53,7 @@ export async function handlePlayerToolCall(name: string, args: any) {
     }
 
     const mins = Math.floor(room.bomb.timerSeconds / 60);
-    const secs = room.bomb.timerSeconds % 60;
+    const secs = Math.floor(room.bomb.timerSeconds % 60);
     let viewText = "";
 
     if (player.role === "Defuser") {

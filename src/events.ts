@@ -40,7 +40,7 @@ export function getGameStatusContent(roomCode: string): { type: string; text: st
   let statusLine = `Bomb: ${bombStatus}`;
   if (room.bomb.status === "active" || room.bomb.status === "defused" || room.bomb.status === "exploded") {
     const mins = Math.floor(room.bomb.timerSeconds / 60);
-    const secs = room.bomb.timerSeconds % 60;
+    const secs = Math.floor(room.bomb.timerSeconds % 60);
     statusLine += `  |  ⏱ ${mins}m ${secs}s  |  ⚡ Strikes: ${room.bomb.strikes}/${room.bomb.maxStrikes}`;
   }
 
