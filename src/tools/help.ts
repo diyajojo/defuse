@@ -1,3 +1,5 @@
+import { START_DEFUSE_MANUAL_TEXT } from "../manual.js";
+
 export const helpToolSchemas = [
   {
     name: "start_defuse",
@@ -15,82 +17,7 @@ export async function handleHelpToolCall(name: string, args: any) {
       content: [
         {
           type: "text",
-          text: `[INSTRUCTION TO ASSISTANT: The text between the === markers below is the official game manual. You MUST copy and paste it to the user EXACTLY as written below — every line, every emoji, every heading. Do NOT summarize, rephrase, shorten, or add any text of your own before or after it. Just display it verbatim.]
-
-===
-# 💣 DEFUSE — GAME MANUAL 
-
-A cooperative bomb-defusal game for 3 players. No single player has the full picture. 
-You must communicate and work as a team to defuse the bomb before time runs out.
-
----
-
-## 👥 THE 3 ROLES
-
-| Role | What You See | What You Can Do |
-|------|-------------|-----------------|
-| **Defuser** | The physical bomb (wires, modules) | Cut wires using \`interact\` |
-| **Expert** | The Bomb Defusal Manual (the rules) | Read rules aloud to the Defuser |
-| **Overseer** | The bomb's external casing (serial number, timer) | Feed clues to the Expert |
-
----
-
-## 🎮 HOW TO START
-
-**Step 1 — Host creates a room:**
-> Tell Claude: **create-room [your name]**
-> You will receive your **Room Code**, **Player ID**, and **Role**.
-
-**Step 2 — Friends join the room:**
-> Tell Claude: **join-[CODE]-[their name]**
-> They will each receive their own **Player ID** and **Role**.
-
-**Step 3 — Game starts automatically when 3 players join!**
-
----
-
-## 📋 DURING THE GAME
-
-Once the game starts, each player must check their view using their Room Code and Player ID:
-**🔴 If you are the Defuser:**
-> Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the wires and the Morse code blinking sequence. Describe them out loud.
-
-**📖 If you are the Expert:**
-> Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the Wires rules and the Morse translation table. Guide your teammates.
-
-**👁️ If you are the Overseer:**
-> Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the bomb casing and the Frequency directory table. Share information with the Expert.
-
----
-
-## ✂️ INTERACTING WITH THE BOMB (Defuser only)
-
-**To cut a wire:**
-> Tell Claude: **cut-[WIRE NUMBER]-[CODE]-[YOUR ID]**
-
-**To submit a frequency for the Morse module:**
-> Tell Claude: **submit-frequency-[FREQUENCY]-[CODE]-[YOUR ID]**
-
-- ✅ Correct action → Module defused! (Defuse all modules to win)
-- ❌ Wrong action → Strike added (3 strikes = 💥 BOOM, game over!)
-
----
-
-## 📡 CHECK FOR UPDATES (Any player)
-
-Want to see what's happening? Check who joined, bomb status, and recent events:
-> Tell Claude: **status-[CODE]**
-
-Use this anytime to see the latest game state — who joined, strikes, and if the bomb was defused or exploded!
-
----
-
-**Ready? Tell Claude: "create-room [your name]" to begin!**
-
-===`.trim(),
+          text: START_DEFUSE_MANUAL_TEXT,
         },
       ],
     };

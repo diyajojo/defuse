@@ -1,5 +1,6 @@
 import { rooms } from "../state/rooms.js";
 import { getGameStatusContent } from "../events.js";
+import { getDefuserView, EXPERT_VIEW_TEXT, getOverseerView } from "../manual.js";
 
 export const playerToolSchemas = [
   {
@@ -61,14 +62,14 @@ export async function handlePlayerToolCall(name: string, args: any) {
       const wireStatus = wireModule ? (wireModule.isDefused ? " [DEFUSED]" : "") : "";
       
       const morseModule = room.bomb.modules.find(m => m.type === "morse");
-      const morseSequence = morseModule ? morseModule.morseSequence : "None";
+      const morseSequence = morseModule ? (morseModule as any).morseSequence : "None";
       const morseStatus = morseModule ? (morseModule.isDefused ? " [DEFUSED]" : "") : "";
       
-      viewText = `[DEFUSER VIEW]\nYou are looking at the bomb.\nTimer: ${mins}m ${secs}s remaining\nStrikes: ${room.bomb.strikes}/${room.bomb.maxStrikes}\n\nMODULE 1: Wires${wireStatus}\nThere are wires of the following colors in order: ${wireText}\n\nMODULE 2: Morse Code Light${morseStatus}\nA status light is blinking: ${morseSequence}`;
+      viewText = getDefuserView(mins, secs, room.bomb.strikes, room.bomb.maxStrikes, wireStatus, wireText, morseStatus, morseSequence);
     } else if (player.role === "Expert") {
-      viewText = `[EXPERT VIEW]\nYou are looking at the Bomb Defusal Manual.\n\n--- WIRE MODULE INSTRUCTIONS ---\nFirst, ask the Overseer for the bomb's Serial Number.\n\nIF THE LAST DIGIT OF THE SERIAL NUMBER IS ODD:\n1. If there is a red wire, cut the second wire.\n2. Otherwise, if the last wire is white, cut the last wire.\n3. Otherwise, if there is a blue wire, cut the first wire.\n4. Otherwise, cut the last wire.\n\nIF THE LAST DIGIT OF THE SERIAL NUMBER IS EVEN:\n1. If there is a red wire, cut the first wire.\n2. Otherwise, if the last wire is white, cut the second wire.\n3. Otherwise, if there is a blue wire, cut the last wire.\n4. Otherwise, cut the first wire.\n\n--- MORSE CODE MODULE INSTRUCTIONS ---\nThe Defuser will see a blinking Morse code sequence representing a word.\n1. Translate the Morse code to a word using this table:\n   A: •—      B: —•••    C: —•—•    D: —••     E: •\n   F: ••—•    G: ——•     H: ••••    I: ••      J: •———\n   K: —•—     L: •—••    M: ——      N: —•      O: ———\n   P: •——•    Q: ——•—    R: •—•     S: •••     T: —\n   U: ••—     V: •••—    W: •——     X: —••—    Y: —•——\n   Z: ——••\n2. Tell the decoded word to the Overseer.\n3. The Overseer will give you a frequency. Tell the Defuser to enter that frequency.`;
+      viewText = EXPERT_VIEW_TEXT;
     } else if (player.role === "Overseer") {
-      viewText = `[OVERSEER VIEW]\nYou are monitoring the external casing of the bomb.\nTimer: ${mins}m ${secs}s remaining\nSerial Number: ${room.bomb.serialNumber}\n\n--- FREQUENCY DIRECTORY (MORSE MODULE) ---\nLook up the word translated by the Expert to find the correct frequency:\n- SHELL: 3.515 MHz\n- STING: 3.542 MHz\n- CLOCK: 3.555 MHz\n- LATER: 3.572 MHz\n- BLINK: 3.600 MHz`;
+      viewText = getOverseerView(mins, secs, room.bomb.serialNumber);
     } else {
       return {
         isError: true,
