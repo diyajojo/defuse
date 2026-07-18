@@ -5,17 +5,17 @@ import { getDefuserView, EXPERT_VIEW_TEXT, getOverseerView } from "../manual.js"
 export const playerToolSchemas = [
   {
     name: "get_my_view",
-    description: "Returns the specific information you are allowed to see based on your role. TRIGGER: Call this ONLY when the user types exactly 'view [roomCode] [playerId]'. IMPORTANT: Display the EXACT tool response to the user, word for word, without any summarization, rephrasing, or modification.",
+    description: "Returns the specific information you are allowed to see based on your role. TRIGGER: Call this ONLY when the user types exactly 'view-[roomCode]-[playerId]'. IMPORTANT: Display the EXACT tool response to the user, word for word, without any summarization, rephrasing, or modification.",
     inputSchema: {
       type: "object",
       properties: {
         roomCode: {
           type: "string",
-          description: "The 6-character room code.",
+          description: "The 6-character room code. Infer this from previous conversation history if not explicitly provided.",
         },
         playerId: {
           type: "string",
-          description: "Your unique Player ID.",
+          description: "Your unique Player ID. Infer this from previous conversation history if not explicitly provided.",
         },
       },
       required: ["roomCode", "playerId"],

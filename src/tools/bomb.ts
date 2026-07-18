@@ -3,22 +3,8 @@ import { broadcastEvent, getGameStatusContent } from "../events.js";
 
 export const bombToolSchemas = [
   {
-    name: "get_bomb_state",
-    description: "Returns the current state of the bomb in a room, including timer, strikes, and modules.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        roomCode: {
-          type: "string",
-          description: "The 6-character room code.",
-        },
-      },
-      required: ["roomCode"],
-    },
-  },
-  {
-    name: "get_updates",
-    description: "Returns the latest game status, all players, bomb state, and recent events for a room. TRIGGER: Call this ONLY when the user types exactly 'view room [roomCode]'.",
+    name: "get_status",
+    description: "Returns the global game status, including players in the room, timer, strikes, and recent events. TRIGGER: Call this ONLY when the user types exactly 'status-[roomCode]'. Do NOT call this if the user wants to see their puzzle view.",
     inputSchema: {
       type: "object",
       properties: {
@@ -55,46 +41,7 @@ export const bombToolSchemas = [
 
 export async function handleBombToolCall(name: string, args: any) {
 
-  if (name === "get_bomb_state") {
-    const roomCode = args?.roomCode?.toUpperCase();
-    if (!roomCode) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: "Missing roomCode argument" }]
-      };
-    }
-
-    const room = rooms.get(roomCode);
-    if (!room) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `Error: Room ${roomCode} does not exist.` }]
-      };
-    }
-
-    const bomb = room.bomb;
-    const mins = Math.floor(bomb.timerSeconds / 60);
-    const secs = Math.floor(bomb.timerSeconds % 60);
-    
-    // Formatting the bomb state nicely
-    const output = [
-      `💣 BOMB STATUS [${bomb.status.toUpperCase()}] 💣`,
-      `Timer: ${mins}m ${secs}s remaining`,
-      `Strikes: ${bomb.strikes}/${bomb.maxStrikes}`,
-      `Modules Active: ${bomb.modules.length}`,
-    ].join("\n");
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: output,
-        },
-      ],
-    };
-  }
-
-  if (name === "get_updates") {
+  if (name === "get_status") {
     const roomCode = args?.roomCode?.toUpperCase();
     if (!roomCode) {
       return { isError: true, content: [{ type: "text", text: "Missing roomCode argument" }] };
@@ -105,7 +52,7 @@ export async function handleBombToolCall(name: string, args: any) {
     }
 
     const statusBlock = getGameStatusContent(roomCode);
-    const content: any[] = [{ type: "text", text: `📡 LIVE UPDATE FOR ROOM ${roomCode}` }];
+    const content: any[] = [{ type: "text", text: `📡 LIVE STATUS FOR ROOM ${roomCode}` }];
     if (statusBlock) content.push(statusBlock);
     return { content };
   }

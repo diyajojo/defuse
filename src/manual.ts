@@ -21,11 +21,11 @@ You must communicate and work as a team to defuse the bomb before time runs out.
 ## 🎮 HOW TO START
 
 **Step 1 — Host creates a room:**
-> Tell Claude: **create-room [your name]**
+> Tell Claude: **create-room-[YOUR NAME]**
 > You will receive your **Room Code**, **Player ID**, and **Role**.
 
 **Step 2 — Friends join the room:**
-> Tell Claude: **join-[CODE]-[their name]**
+> Tell Claude: **join-[CODE]-[THEIR NAME]**
 > They will each receive their own **Player ID** and **Role**.
 
 **Step 3 — Game starts automatically when 3 players join!**
@@ -74,7 +74,24 @@ Use this anytime to see the latest game state — who joined, strikes, and if th
 
 ---
 
-**Ready? Tell Claude: "create-room [your name]" to begin!**
+**Ready? Tell Claude: "create-room-[YOUR NAME]" to begin!**
+
+---
+
+## ⌨️ QUICK COMMAND REFERENCE
+
+**Pre-Game:**
+- \`create-room-[NAME]\` : Create a new room
+- \`join-[CODE]-[NAME]\` : Join an existing room
+
+**During Game (Any Player):**
+- \`view-[CODE]-[ID]\` : Look at your specific puzzle / manual
+- \`status-[CODE]\` : Check the timer, strikes, and game status
+
+**Defusing (Defuser Only):**
+- \`cut-[WIRE NUMBER]-[CODE]-[ID]\` : Cut a wire (1-indexed)
+- \`submit-frequency-[FREQ]-[CODE]-[ID]\` : Submit Morse frequency
+- \`press-button-[COLOR]-[CODE]-[ID]\` : Press Control Panel button (red/blue/white)
 
 ===`.trim();
 
