@@ -13,7 +13,13 @@ export interface MorseModule {
   isDefused: boolean;
 }
 
-export type BombModule = WireModule | MorseModule;
+export interface ControlPanelModule {
+  type: "control_panel";
+  targetButton: "red" | "blue" | "white";
+  isDefused: boolean;
+}
+
+export type BombModule = WireModule | MorseModule | ControlPanelModule;
 
 export interface Bomb {
   status: "uninitialized" | "active" | "defused" | "exploded";
@@ -22,6 +28,8 @@ export interface Bomb {
   maxStrikes: number; // Game over if strikes >= maxStrikes
   modules: BombModule[]; // The puzzles on the bomb
   serialNumber: string; // Dynamic serial number (e.g. X1Y-234)
+  batteries: number; // e.g. 0 to 3 batteries
+  indicators: string[]; // e.g. ["FRK", "CAR"]
 }
 
 export function generateSerialNumber(): string {
@@ -97,6 +105,13 @@ export function generateWireModule(serialNumber: string): WireModule {
   };
 }
 
+export function generateIndicators(): string[] {
+  const pool = ["FRK", "CAR", "SND", "CLR", "IND", "NSA", "SIG", "TRN", "BOB"];
+  const numIndicators = Math.floor(Math.random() * 3); // 0 to 2
+  const shuffled = pool.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, numIndicators);
+}
+
 export function createInitialBomb(): Bomb {
   return {
     status: "uninitialized",
@@ -105,6 +120,8 @@ export function createInitialBomb(): Bomb {
     maxStrikes: 3,
     modules: [],
     serialNumber: generateSerialNumber(),
+    batteries: Math.floor(Math.random() * 4), // 0 to 3
+    indicators: generateIndicators(),
   };
 }
 
@@ -145,6 +162,30 @@ export function generateMorseModule(): MorseModule {
     targetWord,
     morseSequence,
     targetFrequency,
+    isDefused: false
+  };
+}
+
+export function generateControlPanelModule(bomb: Bomb): ControlPanelModule {
+  let targetButton: "red" | "blue" | "white";
+  
+  const hasVowel = /[AEIOU]/.test(bomb.serialNumber.toUpperCase());
+  
+  if (bomb.batteries >= 3) {
+    targetButton = "red";
+  } else if (bomb.indicators.includes("CAR")) {
+    targetButton = "blue";
+  } else if (bomb.indicators.includes("FRK") && bomb.batteries === 0) {
+    targetButton = "white";
+  } else if (hasVowel) {
+    targetButton = "blue";
+  } else {
+    targetButton = "white";
+  }
+
+  return {
+    type: "control_panel",
+    targetButton,
     isDefused: false
   };
 }

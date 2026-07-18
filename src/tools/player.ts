@@ -5,7 +5,7 @@ import { getDefuserView, EXPERT_VIEW_TEXT, getOverseerView } from "../manual.js"
 export const playerToolSchemas = [
   {
     name: "get_my_view",
-    description: "Returns the specific information you are allowed to see based on your role. TRIGGER: Call this ONLY when the user types exactly 'view [roomCode] [playerId]'.",
+    description: "Returns the specific information you are allowed to see based on your role. TRIGGER: Call this ONLY when the user types exactly 'view [roomCode] [playerId]'. IMPORTANT: Display the EXACT tool response to the user, word for word, without any summarization, rephrasing, or modification.",
     inputSchema: {
       type: "object",
       properties: {
@@ -65,11 +65,14 @@ export async function handlePlayerToolCall(name: string, args: any) {
       const morseSequence = morseModule ? (morseModule as any).morseSequence : "None";
       const morseStatus = morseModule ? (morseModule.isDefused ? " [DEFUSED]" : "") : "";
       
-      viewText = getDefuserView(mins, secs, room.bomb.strikes, room.bomb.maxStrikes, wireStatus, wireText, morseStatus, morseSequence);
+      const controlPanelModule = room.bomb.modules.find(m => m.type === "control_panel");
+      const controlPanelStatus = controlPanelModule ? (controlPanelModule.isDefused ? " [DEFUSED]" : "") : "";
+      
+      viewText = getDefuserView(mins, secs, room.bomb.strikes, room.bomb.maxStrikes, wireStatus, wireText, morseStatus, morseSequence, controlPanelStatus);
     } else if (player.role === "Expert") {
       viewText = EXPERT_VIEW_TEXT;
     } else if (player.role === "Overseer") {
-      viewText = getOverseerView(mins, secs, room.bomb.serialNumber);
+      viewText = getOverseerView(mins, secs, room.bomb.serialNumber, room.bomb.batteries, room.bomb.indicators);
     } else {
       return {
         isError: true,
@@ -78,8 +81,9 @@ export async function handlePlayerToolCall(name: string, args: any) {
     }
 
     // Return view as one content block, status as a SEPARATE content block
+    const systemPrefix = "[INSTRUCTION TO ASSISTANT: You MUST copy and paste the text below exactly as written. Do NOT summarize or format it.]\n\n";
     const statusBlock = getGameStatusContent(roomCode);
-    const content: any[] = [{ type: "text", text: viewText }];
+    const content: any[] = [{ type: "text", text: systemPrefix + viewText }];
     if (statusBlock) content.push(statusBlock);
     return { content };
   }

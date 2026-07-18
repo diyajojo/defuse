@@ -32,6 +32,8 @@ describe("Rooms State Logic", () => {
           maxStrikes: 3,
           modules: [],
           serialNumber: "A1B-123",
+          batteries: 2,
+          indicators: ["CAR"],
         },
         events: [],
       });

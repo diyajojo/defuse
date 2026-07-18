@@ -57,6 +57,9 @@ Once the game starts, each player must check their view using their Room Code an
 **To submit a frequency for the Morse module:**
 > Tell Claude: **submit-frequency-[FREQUENCY]-[CODE]-[YOUR ID]**
 
+**To press a button on the Control Panel:**
+> Tell Claude: **press-button-[COLOR]-[CODE]-[YOUR ID]**
+
 - ✅ Correct action → Module defused! (Defuse all modules to win)
 - ❌ Wrong action → Strike added (3 strikes = 💥 BOOM, game over!)
 
@@ -83,7 +86,8 @@ export function getDefuserView(
   wireStatus: string,
   wireText: string,
   morseStatus: string,
-  morseSequence: string
+  morseSequence: string,
+  controlPanelStatus: string
 ): string {
   return `[DEFUSER VIEW]
 You are looking at the bomb.
@@ -94,7 +98,10 @@ MODULE 1: Wires${wireStatus}
 There are wires of the following colors in order: ${wireText}
 
 MODULE 2: Morse Code Light${morseStatus}
-A status light is blinking: ${morseSequence}`;
+A status light is blinking: ${morseSequence}
+
+MODULE 3: Control Panel${controlPanelStatus}
+There are 3 colored buttons: RED, BLUE, and WHITE.`;
 }
 
 export const EXPERT_VIEW_TEXT = `[EXPERT VIEW]
@@ -125,17 +132,33 @@ The Defuser will see a blinking Morse code sequence representing a word.
    U: ••—     V: •••—    W: •——     X: —••—    Y: —•——
    Z: ——••
 2. Tell the decoded word to the Overseer.
-3. The Overseer will give you a frequency. Tell the Defuser to enter that frequency.`;
+3. The Overseer will give you a frequency. Tell the Defuser to enter that frequency.
+
+--- CONTROL PANEL INSTRUCTIONS ---
+The Defuser will see 3 colored buttons: RED, BLUE, and WHITE.
+1. If the bomb has 3 or more batteries, press the RED button.
+2. Otherwise, if there is a lit "CAR" indicator, press the BLUE button.
+3. Otherwise, if there is a lit "FRK" indicator AND exactly 0 batteries, press the WHITE button.
+4. Otherwise, if the Serial Number contains a vowel (A, E, I, O, U), press the BLUE button.
+5. Otherwise, press the WHITE button.`;
 
 export function getOverseerView(
   mins: number,
   secs: number,
-  serialNumber: string
+  serialNumber: string,
+  batteries: number,
+  indicators: string[]
 ): string {
+  const indText = indicators.length > 0 ? indicators.map(i => `- Lit Indicator: ${i}`).join("\n") : "- No lit indicators";
+  
   return `[OVERSEER VIEW]
 You are monitoring the external casing of the bomb.
 Timer: ${mins}m ${secs}s remaining
+
+--- CASING INFORMATION ---
 Serial Number: ${serialNumber}
+Batteries: ${batteries}
+${indText}
 
 --- FREQUENCY DIRECTORY (MORSE MODULE) ---
 Look up the word translated by the Expert to find the correct frequency:

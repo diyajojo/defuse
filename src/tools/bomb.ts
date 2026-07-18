@@ -40,8 +40,8 @@ export const bombToolSchemas = [
         playerId: { type: "string", description: "Your unique Player ID." },
         action: { 
           type: "string", 
-          enum: ["cut_wire", "submit_frequency"],
-          description: "The type of interaction to perform ('cut_wire' or 'submit_frequency')." 
+          enum: ["cut_wire", "submit_frequency", "press_button"],
+          description: "The type of interaction to perform ('cut_wire', 'submit_frequency', or 'press_button')." 
         },
         target: { 
           type: "string",
@@ -203,6 +203,46 @@ export async function handleBombToolCall(name: string, args: any) {
         } else {
           broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} submitted frequency ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
           textResponse = `⚠️ WRONG FREQUENCY! You submitted frequency ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!`;
+        }
+      }
+
+      const statusBlock = getGameStatusContent(roomCode);
+      const content: any[] = [{ type: "text", text: textResponse }];
+      if (statusBlock) content.push(statusBlock);
+      return { content };
+    }
+
+    if (action === "press_button") {
+      const controlPanelModule = bomb.modules.find(m => m.type === "control_panel");
+      
+      if (!controlPanelModule) {
+        return { isError: true, content: [{ type: "text", text: "Error: No Control Panel module found on this bomb." }] };
+      }
+      if (controlPanelModule.isDefused) {
+        return { isError: true, content: [{ type: "text", text: "This module is already defused!" }] };
+      }
+      
+      let textResponse = "";
+      if (target.toLowerCase() === (controlPanelModule as any).targetButton) {
+        controlPanelModule.isDefused = true;
+        const allDefused = bomb.modules.every(m => m.isDefused);
+        if (allDefused) {
+          bomb.status = "defused";
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} pressed the ${target} button — CORRECT! The bomb is DEFUSED! Team wins!`);
+          textResponse = `✅ SUCCESS! You pressed the ${target} button. The Control Panel is DEFUSED! The bomb has been defused! YOU WIN!`;
+        } else {
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} pressed the ${target} button — CORRECT! Control Panel defused!`);
+          textResponse = `✅ SUCCESS! You pressed the ${target} button. The Control Panel is DEFUSED! One more module remaining.`;
+        }
+      } else {
+        bomb.strikes++;
+        if (bomb.strikes >= bomb.maxStrikes) {
+          bomb.status = "exploded";
+          broadcastEvent(roomCode, `💥 BOOM! Defuser ${player.name} pressed the ${target} button — WRONG! Strike ${bomb.strikes}! THE BOMB EXPLODED! Team loses.`);
+          textResponse = `💥 BOOM! You pressed the ${target} button — INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!`;
+        } else {
+          broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} pressed the ${target} button — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
+          textResponse = `⚠️ WRONG BUTTON! You pressed the ${target} button. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!`;
         }
       }
 
