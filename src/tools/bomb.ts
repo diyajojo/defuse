@@ -32,7 +32,7 @@ export const bombToolSchemas = [
   },
   {
     name: "interact",
-    description: "Allows the Defuser to cut a wire. TRIGGER: Call this ONLY when the user types exactly 'cut [wire number] [player ID]'. Provide 'cut_wire' as action, the wire number as target, your player ID, and infer the room code from context.",
+    description: "Allows the Defuser to interact with the bomb modules (e.g., cutting a wire or entering a radio frequency). TRIGGER: Call this ONLY when the user types exactly 'cut [wire number] [player ID]' or 'submit frequency [frequency] [player ID]'. Provide 'cut_wire' or 'submit_frequency' as action, the target value (e.g., '2' or '3.515'), your player ID, and infer the room code from context.",
     inputSchema: {
       type: "object",
       properties: {
@@ -40,12 +40,12 @@ export const bombToolSchemas = [
         playerId: { type: "string", description: "Your unique Player ID." },
         action: { 
           type: "string", 
-          enum: ["cut_wire"],
-          description: "The type of interaction to perform (e.g., 'cut_wire')." 
+          enum: ["cut_wire", "submit_frequency"],
+          description: "The type of interaction to perform ('cut_wire' or 'submit_frequency')." 
         },
         target: { 
           type: "string",
-          description: "The target of the action, e.g. '2' to cut the second wire."
+          description: "The target of the action, e.g. '2' for wire index, or '3.515' for Morse frequency."
         }
       },
       required: ["roomCode", "playerId", "action", "target"]
@@ -145,9 +145,15 @@ export async function handleBombToolCall(name: string, args: any) {
       let textResponse = "";
       if (wireIndex === wireModule.targetWireIndex) {
         wireModule.isDefused = true;
-        bomb.status = "defused";
-        broadcastEvent(roomCode, `🎉 Defuser ${player.name} cut wire ${target} — CORRECT! The bomb is DEFUSED! Team wins!`);
-        textResponse = `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!`;
+        const allDefused = bomb.modules.every(m => m.isDefused);
+        if (allDefused) {
+          bomb.status = "defused";
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} cut wire ${target} — CORRECT! The bomb is DEFUSED! Team wins!`);
+          textResponse = `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! The bomb has been defused! YOU WIN!`;
+        } else {
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} cut wire ${target} — CORRECT! Wire module defused!`);
+          textResponse = `✅ SUCCESS! You cut wire ${target}. The wire module is DEFUSED! One more module remaining.`;
+        }
       } else {
         bomb.strikes++;
         if (bomb.strikes >= bomb.maxStrikes) {
@@ -157,6 +163,46 @@ export async function handleBombToolCall(name: string, args: any) {
         } else {
           broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} cut wire ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
           textResponse = `⚠️ WRONG WIRE! You cut wire ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!`;
+        }
+      }
+
+      const statusBlock = getGameStatusContent(roomCode);
+      const content: any[] = [{ type: "text", text: textResponse }];
+      if (statusBlock) content.push(statusBlock);
+      return { content };
+    }
+
+    if (action === "submit_frequency") {
+      const morseModule = bomb.modules.find(m => m.type === "morse");
+      
+      if (!morseModule) {
+        return { isError: true, content: [{ type: "text", text: "Error: No Morse module found on this bomb." }] };
+      }
+      if (morseModule.isDefused) {
+        return { isError: true, content: [{ type: "text", text: "This module is already defused!" }] };
+      }
+      
+      let textResponse = "";
+      if (target === morseModule.targetFrequency) {
+        morseModule.isDefused = true;
+        const allDefused = bomb.modules.every(m => m.isDefused);
+        if (allDefused) {
+          bomb.status = "defused";
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} submitted frequency ${target} — CORRECT! The bomb is DEFUSED! Team wins!`);
+          textResponse = `✅ SUCCESS! You submitted frequency ${target}. The Morse module is DEFUSED! The bomb has been defused! YOU WIN!`;
+        } else {
+          broadcastEvent(roomCode, `🎉 Defuser ${player.name} submitted frequency ${target} — CORRECT! Morse module defused!`);
+          textResponse = `✅ SUCCESS! You submitted frequency ${target}. The Morse module is DEFUSED! One more module remaining.`;
+        }
+      } else {
+        bomb.strikes++;
+        if (bomb.strikes >= bomb.maxStrikes) {
+          bomb.status = "exploded";
+          broadcastEvent(roomCode, `💥 BOOM! Defuser ${player.name} submitted frequency ${target} — WRONG! Strike ${bomb.strikes}! THE BOMB EXPLODED! Team loses.`);
+          textResponse = `💥 BOOM! You submitted frequency ${target} — INCORRECT! Strike ${bomb.strikes}/${bomb.maxStrikes}. THE BOMB EXPLODED! YOU LOSE!`;
+        } else {
+          broadcastEvent(roomCode, `⚠️ Strike! Defuser ${player.name} submitted frequency ${target} — WRONG! Strike ${bomb.strikes}/${bomb.maxStrikes}.`);
+          textResponse = `⚠️ WRONG FREQUENCY! You submitted frequency ${target}. Strike ${bomb.strikes}/${bomb.maxStrikes}! The bomb is still active!`;
         }
       }
 

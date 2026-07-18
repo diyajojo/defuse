@@ -5,12 +5,22 @@ export interface WireModule {
   isDefused: boolean;
 }
 
+export interface MorseModule {
+  type: "morse";
+  targetWord: string; // e.g., "SHELL"
+  morseSequence: string; // e.g., ".... .... . .-.. .-.." (with spacing)
+  targetFrequency: string; // e.g., "3.515"
+  isDefused: boolean;
+}
+
+export type BombModule = WireModule | MorseModule;
+
 export interface Bomb {
   status: "uninitialized" | "active" | "defused" | "exploded";
   timerSeconds: number; // e.g., 300 for 5 minutes
   strikes: number; // Mistakes made
   maxStrikes: number; // Game over if strikes >= maxStrikes
-  modules: WireModule[]; // The puzzles on the bomb
+  modules: BombModule[]; // The puzzles on the bomb
   serialNumber: string; // Dynamic serial number (e.g. X1Y-234)
 }
 
@@ -95,5 +105,46 @@ export function createInitialBomb(): Bomb {
     maxStrikes: 3,
     modules: [],
     serialNumber: generateSerialNumber(),
+  };
+}
+
+export const MORSE_WORDS: Record<string, string> = {
+  "SHELL": "3.515",
+  "STING": "3.542",
+  "CLOCK": "3.555",
+  "LATER": "3.572",
+  "BLINK": "3.600"
+};
+
+export const MORSE_ALPHABET: Record<string, string> = {
+  "A": "•—",    "B": "—•••",  "C": "—•—•",  "D": "—••",   "E": "•",
+  "F": "••—•",  "G": "——•",   "H": "••••",  "I": "••",    "J": "•———",
+  "K": "—•—",   "L": "•—••",  "M": "——",    "N": "—•",    "O": "———",
+  "P": "•——•",  "Q": "——•—",  "R": "•—•",   "S": "•••",   "T": "—",
+  "U": "••—",   "V": "•••—",  "W": "•——",   "X": "—••—",  "Y": "—•——",
+  "Z": "——••"
+};
+
+export function translateWordToMorse(word: string): string {
+  return word
+    .toUpperCase()
+    .split("")
+    .map(char => MORSE_ALPHABET[char] || "")
+    .filter(Boolean)
+    .join("   "); // 3 spaces between letters for clarity
+}
+
+export function generateMorseModule(): MorseModule {
+  const words = Object.keys(MORSE_WORDS);
+  const targetWord = words[Math.floor(Math.random() * words.length)];
+  const targetFrequency = MORSE_WORDS[targetWord];
+  const morseSequence = translateWordToMorse(targetWord);
+  
+  return {
+    type: "morse",
+    targetWord,
+    morseSequence,
+    targetFrequency,
+    isDefused: false
   };
 }

@@ -52,28 +52,30 @@ You must communicate and work as a team to defuse the bomb before time runs out.
 ## 📋 DURING THE GAME
 
 Once the game starts, each player must check their view using their Room Code and Player ID:
-
 **🔴 If you are the Defuser:**
 > Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the bomb's wires. Describe them out loud to your teammates.
+> You will see the wires and the Morse code blinking sequence. Describe them out loud.
 
 **📖 If you are the Expert:**
 > Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the Defusal Manual. Read the rules and guide the Defuser.
+> You will see the Wires rules and the Morse translation table. Guide your teammates.
 
 **👁️ If you are the Overseer:**
 > Tell Claude: **view-[CODE]-[YOUR ID]**
-> You will see the bomb casing details. Share clues with the Expert.
+> You will see the bomb casing and the Frequency directory table. Share information with the Expert.
 
 ---
 
-## ✂️ CUTTING A WIRE (Defuser only)
+## ✂️ INTERACTING WITH THE BOMB (Defuser only)
 
-Once the team agrees on which wire to cut, the Defuser tells Claude:
+**To cut a wire:**
 > Tell Claude: **cut-[WIRE NUMBER]-[CODE]-[YOUR ID]**
 
-- ✅ Correct wire → Module defused!
-- ❌ Wrong wire → Strike added (3 strikes = 💥 BOOM, game over!)
+**To submit a frequency for the Morse module:**
+> Tell Claude: **submit-frequency-[FREQUENCY]-[CODE]-[YOUR ID]**
+
+- ✅ Correct action → Module defused! (Defuse all modules to win)
+- ❌ Wrong action → Strike added (3 strikes = 💥 BOOM, game over!)
 
 ---
 
